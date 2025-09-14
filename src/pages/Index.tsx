@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,8 @@ interface Character {
   soundType: string;
   type: 'normal' | 'horror';
   animation: string;
+  image?: string;
+  audioUrl?: string;
 }
 
 interface ActiveSlot {
@@ -20,8 +22,8 @@ interface ActiveSlot {
 }
 
 const characters: Character[] = [
-  { id: '1', name: 'Oren', color: 'bg-orange-500', soundType: 'beat', type: 'normal', animation: 'bounce' },
-  { id: '2', name: 'Clukr', color: 'bg-red-500', soundType: 'melody', type: 'normal', animation: 'pulse' },
+  { id: '1', name: 'Oren', color: 'bg-orange-500', soundType: 'beat', type: 'normal', animation: 'bounce', image: '/img/2e7ef510-d280-4d14-91ca-d605291dce2e.jpg' },
+  { id: '2', name: 'Clukr', color: 'bg-red-500', soundType: 'melody', type: 'normal', animation: 'pulse', image: '/img/3e472d48-3615-4f2a-a7ea-aae22c0118ea.jpg' },
   { id: '3', name: 'Garnold', color: 'bg-gray-400', soundType: 'bass', type: 'normal', animation: 'spin' },
   { id: '4', name: 'OWAKCX', color: 'bg-yellow-500', soundType: 'voice', type: 'normal', animation: 'shake' },
   { id: '5', name: 'Sky', color: 'bg-blue-400', soundType: 'harmony', type: 'normal', animation: 'float' },
@@ -30,10 +32,15 @@ const characters: Character[] = [
   { id: '8', name: 'Mr. Tree', color: 'bg-green-500', soundType: 'nature', type: 'normal', animation: 'sway' },
   { id: '9', name: 'Simon', color: 'bg-cyan-400', soundType: 'vocal', type: 'normal', animation: 'breathe' },
   { id: '10', name: 'Tunner', color: 'bg-gray-600', soundType: 'percussion', type: 'normal', animation: 'tap' },
-  { id: '11', name: 'Black', color: 'bg-gray-800', soundType: 'dark-beat', type: 'horror', animation: 'flicker' },
-  { id: '12', name: 'Brud', color: 'bg-green-800', soundType: 'horror-voice', type: 'horror', animation: 'glitch' },
-  { id: '13', name: 'Vineria', color: 'bg-purple-800', soundType: 'screech', type: 'horror', animation: 'distort' },
-  { id: '14', name: 'Gray', color: 'bg-gray-500', soundType: 'static', type: 'horror', animation: 'static' },
+  { id: '11', name: 'Mr. Fun Computer', color: 'bg-blue-600', soundType: 'electronic', type: 'normal', animation: 'pulse', image: '/img/50e71920-8d72-4e82-97a7-2cae0ac108b4.jpg' },
+  { id: '12', name: 'Wenda', color: 'bg-pink-400', soundType: 'cute-voice', type: 'normal', animation: 'bounce', image: '/img/867fca7a-51f8-4132-876b-f59f211a28df.jpg' },
+  { id: '13', name: 'Pinki', color: 'bg-pink-500', soundType: 'happy-voice', type: 'normal', animation: 'pulse', image: '/img/c0a5f7d8-c412-4f22-8e09-7fbba8234222.jpg' },
+  { id: '14', name: 'Jevin', color: 'bg-teal-500', soundType: 'cool-beat', type: 'normal', animation: 'tap' },
+  { id: '15', name: 'Raddy', color: 'bg-red-700', soundType: 'angry-voice', type: 'horror', animation: 'shake' },
+  { id: '16', name: 'Black', color: 'bg-gray-800', soundType: 'dark-beat', type: 'horror', animation: 'flicker', image: '/img/2be6ad25-bfc9-4624-9f1e-4d369e585361.jpg' },
+  { id: '17', name: 'Brud', color: 'bg-green-800', soundType: 'horror-voice', type: 'horror', animation: 'glitch' },
+  { id: '18', name: 'Vineria', color: 'bg-purple-800', soundType: 'screech', type: 'horror', animation: 'distort' },
+  { id: '19', name: 'Gray', color: 'bg-gray-500', soundType: 'static', type: 'horror', animation: 'static', image: '/img/ae02b33b-a16b-4bed-ac96-47f42a6aeb6c.jpg' },
 ];
 
 export default function Index() {
@@ -49,6 +56,97 @@ export default function Index() {
   const [isRecording, setIsRecording] = useState(false);
   const [currentMode, setCurrentMode] = useState<'normal' | 'horror'>('normal');
   const [globalVolume, setGlobalVolume] = useState(75);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const oscillatorsRef = useRef<Map<string, OscillatorNode>>(new Map());
+
+  // Initialize Audio Context
+  useEffect(() => {
+    const initAudioContext = async () => {
+      try {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      } catch (error) {
+        console.log('Web Audio API не поддерживается');
+      }
+    };
+    initAudioContext();
+    
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
+
+  // Play sound for character
+  const playCharacterSound = (character: Character, slotId: string) => {
+    if (!audioContextRef.current) return;
+
+    const ctx = audioContextRef.current;
+    
+    // Stop previous sound for this slot
+    const existingOsc = oscillatorsRef.current.get(slotId);
+    if (existingOsc) {
+      existingOsc.stop();
+      oscillatorsRef.current.delete(slotId);
+    }
+
+    // Create new sound based on character type
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    // Set frequency based on character sound type
+    const frequencies: { [key: string]: number } = {
+      'beat': 60, // Low beat
+      'melody': 440, // A note
+      'bass': 80, // Deep bass
+      'voice': 330, // Human voice range
+      'harmony': 220, // Lower harmony
+      'synth': 880, // High synth
+      'effect': 1760, // High effect
+      'nature': 165, // Nature sounds
+      'vocal': 294, // D note
+      'percussion': 55, // Very low percussion
+      'electronic': 523, // C5 note
+      'cute-voice': 370, // Higher voice
+      'happy-voice': 392, // G note
+      'cool-beat': 73, // Cool bass
+      'angry-voice': 110, // Angry low
+      'dark-beat': 46, // Very dark
+      'horror-voice': 98, // Horror frequency
+      'screech': 2000, // High screech
+      'static': 1000 // Static noise
+    };
+
+    oscillator.frequency.setValueAtTime(frequencies[character.soundType] || 440, ctx.currentTime);
+    
+    // Set wave type based on character type
+    if (character.type === 'horror') {
+      oscillator.type = 'sawtooth'; // Harsh horror sound
+    } else {
+      const waveTypes: OscillatorType[] = ['sine', 'square', 'triangle'];
+      oscillator.type = waveTypes[Math.floor(Math.random() * waveTypes.length)];
+    }
+    
+    // Volume control
+    gainNode.gain.setValueAtTime(0.1 * (globalVolume / 100), ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    
+    // Connect nodes
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    // Start and schedule stop
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.8);
+    
+    // Store reference
+    oscillatorsRef.current.set(slotId, oscillator);
+    
+    // Clean up when done
+    oscillator.onended = () => {
+      oscillatorsRef.current.delete(slotId);
+    };
+  };
 
   const filteredCharacters = characters.filter(char => char.type === currentMode);
 
@@ -70,6 +168,10 @@ export default function Index() {
             : slot
         )
       );
+      
+      // Play sound when character is dropped
+      playCharacterSound(draggedCharacter, slotId);
+      
       setDraggedCharacter(null);
     }
   };
@@ -86,11 +188,26 @@ export default function Index() {
 
   const toggleSlot = (slotId: string) => {
     setActiveSlots(prev =>
-      prev.map(slot =>
-        slot.id === slotId
-          ? { ...slot, isPlaying: !slot.isPlaying }
-          : slot
-      )
+      prev.map(slot => {
+        if (slot.id === slotId && slot.character) {
+          const newIsPlaying = !slot.isPlaying;
+          
+          if (newIsPlaying) {
+            // Start playing sound
+            playCharacterSound(slot.character, slotId);
+          } else {
+            // Stop sound
+            const osc = oscillatorsRef.current.get(slotId);
+            if (osc) {
+              osc.stop();
+              oscillatorsRef.current.delete(slotId);
+            }
+          }
+          
+          return { ...slot, isPlaying: newIsPlaying };
+        }
+        return slot;
+      })
     );
   };
 
@@ -309,14 +426,22 @@ export default function Index() {
                   className="cursor-grab active:cursor-grabbing hover:scale-105 transition-transform"
                 >
                   <CardContent className="p-3">
-                    <div className={`w-full h-16 rounded-lg ${character.color} mb-2 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow`}>
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <Icon 
-                          name={character.type === 'horror' ? 'Skull' : 'Music'} 
-                          size={16} 
-                          className="text-white"
+                    <div className={`w-full h-16 rounded-lg ${character.color} mb-2 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow overflow-hidden`}>
+                      {character.image ? (
+                        <img 
+                          src={character.image} 
+                          alt={character.name}
+                          className="w-full h-full object-cover rounded-lg"
                         />
-                      </div>
+                      ) : (
+                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                          <Icon 
+                            name={character.type === 'horror' ? 'Skull' : 'Music'} 
+                            size={16} 
+                            className="text-white"
+                          />
+                        </div>
+                      )}
                     </div>
                     <h3 className="font-semibold text-center text-xs">{character.name}</h3>
                     <Badge variant="secondary" className="w-full justify-center mt-1 text-xs">
