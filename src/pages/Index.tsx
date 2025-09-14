@@ -9,7 +9,7 @@ interface Character {
   name: string;
   color: string;
   soundType: string;
-  type: 'normal' | 'horror';
+  type: 'normal' | 'cute' | 'horror';
   animation: string;
   image?: string;
   audioUrl?: string;
@@ -22,25 +22,36 @@ interface ActiveSlot {
 }
 
 const characters: Character[] = [
-  { id: '1', name: 'Oren', color: 'bg-orange-500', soundType: 'beat', type: 'normal', animation: 'bounce', image: '/img/2e7ef510-d280-4d14-91ca-d605291dce2e.jpg' },
-  { id: '2', name: 'Clukr', color: 'bg-red-500', soundType: 'melody', type: 'normal', animation: 'pulse', image: '/img/3e472d48-3615-4f2a-a7ea-aae22c0118ea.jpg' },
-  { id: '3', name: 'Garnold', color: 'bg-gray-400', soundType: 'bass', type: 'normal', animation: 'spin' },
-  { id: '4', name: 'OWAKCX', color: 'bg-yellow-500', soundType: 'voice', type: 'normal', animation: 'shake' },
-  { id: '5', name: 'Sky', color: 'bg-blue-400', soundType: 'harmony', type: 'normal', animation: 'float' },
-  { id: '6', name: 'Mr. Sun', color: 'bg-yellow-400', soundType: 'synth', type: 'normal', animation: 'glow' },
-  { id: '7', name: 'Durple', color: 'bg-purple-500', soundType: 'effect', type: 'normal', animation: 'wobble' },
-  { id: '8', name: 'Mr. Tree', color: 'bg-green-500', soundType: 'nature', type: 'normal', animation: 'sway' },
-  { id: '9', name: 'Simon', color: 'bg-cyan-400', soundType: 'vocal', type: 'normal', animation: 'breathe' },
+  // Adult Characters (Normal Mode)
+  { id: '1', name: 'Oren', color: 'bg-orange-500', soundType: 'beat', type: 'normal', animation: 'bounce', image: '/img/c001252e-27c6-40a0-b422-3929b859ec34.jpg' },
+  { id: '2', name: 'Clukr', color: 'bg-red-600', soundType: 'melody', type: 'normal', animation: 'pulse', image: '/img/b5c8f446-1f16-4035-8307-4916d667c2d4.jpg' },
+  { id: '3', name: 'Garnold', color: 'bg-gray-400', soundType: 'bass', type: 'normal', animation: 'spin', image: '/img/1a9d8831-097b-44db-9943-942b87f17c98.jpg' },
+  { id: '4', name: 'OWAKCX', color: 'bg-yellow-400', soundType: 'voice', type: 'normal', animation: 'shake' },
+  { id: '5', name: 'Sky', color: 'bg-green-400', soundType: 'harmony', type: 'normal', animation: 'float' },
+  { id: '6', name: 'KidzXD', color: 'bg-gray-700', soundType: 'tech', type: 'normal', animation: 'pulse' },
+  { id: '7', name: 'Durple', color: 'bg-purple-600', soundType: 'effect', type: 'normal', animation: 'wobble' },
+  { id: '8', name: 'Mr. Fun Computer', color: 'bg-blue-600', soundType: 'electronic', type: 'normal', animation: 'pulse' },
+  { id: '9', name: 'Simon', color: 'bg-yellow-300', soundType: 'vocal', type: 'normal', animation: 'breathe' },
   { id: '10', name: 'Tunner', color: 'bg-gray-600', soundType: 'percussion', type: 'normal', animation: 'tap' },
-  { id: '11', name: 'Mr. Fun Computer', color: 'bg-blue-600', soundType: 'electronic', type: 'normal', animation: 'pulse', image: '/img/50e71920-8d72-4e82-97a7-2cae0ac108b4.jpg' },
-  { id: '12', name: 'Wenda', color: 'bg-pink-400', soundType: 'cute-voice', type: 'normal', animation: 'bounce', image: '/img/867fca7a-51f8-4132-876b-f59f211a28df.jpg' },
-  { id: '13', name: 'Pinki', color: 'bg-pink-500', soundType: 'happy-voice', type: 'normal', animation: 'pulse', image: '/img/c0a5f7d8-c412-4f22-8e09-7fbba8234222.jpg' },
-  { id: '14', name: 'Jevin', color: 'bg-teal-500', soundType: 'cool-beat', type: 'normal', animation: 'tap' },
-  { id: '15', name: 'Raddy', color: 'bg-red-700', soundType: 'angry-voice', type: 'horror', animation: 'shake' },
-  { id: '16', name: 'Black', color: 'bg-gray-800', soundType: 'dark-beat', type: 'horror', animation: 'flicker', image: '/img/2be6ad25-bfc9-4624-9f1e-4d369e585361.jpg' },
-  { id: '17', name: 'Brud', color: 'bg-green-800', soundType: 'horror-voice', type: 'horror', animation: 'glitch' },
-  { id: '18', name: 'Vineria', color: 'bg-purple-800', soundType: 'screech', type: 'horror', animation: 'distort' },
-  { id: '19', name: 'Gray', color: 'bg-gray-500', soundType: 'static', type: 'horror', animation: 'static', image: '/img/ae02b33b-a16b-4bed-ac96-47f42a6aeb6c.jpg' },
+  { id: '11', name: 'Mr. Sun', color: 'bg-yellow-500', soundType: 'synth', type: 'normal', animation: 'glow' },
+  { id: '12', name: 'Durple', color: 'bg-purple-500', soundType: 'harmony', type: 'normal', animation: 'wobble' },
+  { id: '13', name: 'Brud', color: 'bg-green-600', soundType: 'nature', type: 'normal', animation: 'sway' },
+  { id: '14', name: 'Garnold', color: 'bg-yellow-600', soundType: 'melody', type: 'normal', animation: 'tap' },
+  { id: '15', name: 'OWAKCX', color: 'bg-orange-600', soundType: 'beat', type: 'normal', animation: 'bounce' },
+  
+  // Child Characters (Cute Mode)  
+  { id: '16', name: 'Pinki', color: 'bg-pink-400', soundType: 'cute-voice', type: 'cute', animation: 'bounce' },
+  { id: '17', name: 'Jevin', color: 'bg-red-500', soundType: 'happy-beat', type: 'cute', animation: 'pulse' },
+  { id: '18', name: 'Tunner Jr', color: 'bg-green-400', soundType: 'kid-voice', type: 'cute', animation: 'float' },
+  { id: '19', name: 'Wenda', color: 'bg-white', soundType: 'sweet-voice', type: 'cute', animation: 'breathe' },
+  { id: '20', name: 'Gray Jr', color: 'bg-gray-300', soundType: 'soft-beat', type: 'cute', animation: 'tap' },
+  
+  // Horror Characters
+  { id: '21', name: 'Raddy', color: 'bg-red-900', soundType: 'scream', type: 'horror', animation: 'shake' },
+  { id: '22', name: 'Clukr Horror', color: 'bg-red-900', soundType: 'evil-laugh', type: 'horror', animation: 'flicker' },
+  { id: '23', name: 'Fun Bot Horror', color: 'bg-pink-900', soundType: 'glitch', type: 'horror', animation: 'distort' },
+  { id: '24', name: 'Vineria', color: 'bg-blue-900', soundType: 'screech', type: 'horror', animation: 'wobble' },
+  { id: '25', name: 'Black', color: 'bg-black', soundType: 'dark-beat', type: 'horror', animation: 'flicker' },
 ];
 
 export default function Index() {
@@ -54,7 +65,7 @@ export default function Index() {
   
   const [draggedCharacter, setDraggedCharacter] = useState<Character | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [currentMode, setCurrentMode] = useState<'normal' | 'horror'>('normal');
+  const [currentMode, setCurrentMode] = useState<'normal' | 'cute' | 'horror'>('normal');
   const [globalVolume, setGlobalVolume] = useState(75);
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<Map<string, OscillatorNode>>(new Map());
@@ -244,6 +255,8 @@ export default function Index() {
     <div className={`min-h-screen transition-all duration-500 ${
       currentMode === 'horror' 
         ? 'bg-gradient-to-br from-gray-900 via-red-900/20 to-black' 
+        : currentMode === 'cute'
+        ? 'bg-gradient-to-br from-pink-100 via-purple-100/50 to-yellow-100'
         : 'bg-gradient-to-br from-sprunki-cyan/20 to-sprunki-purple/20'
     }`}>
       <div className="container mx-auto px-4 py-6">
@@ -259,22 +272,30 @@ export default function Index() {
           </h1>
           
           {/* Mode Switch */}
-          <div className="flex justify-center gap-4 mb-6">
+          <div className="flex justify-center gap-3 mb-6">
             <Button
               onClick={() => setCurrentMode('normal')}
               variant={currentMode === 'normal' ? 'default' : 'outline'}
               className="flex items-center gap-2"
             >
-              <Icon name="Music" size={20} />
-              Нормальный
+              <Icon name="Music" size={18} />
+              Adults
+            </Button>
+            <Button
+              onClick={() => setCurrentMode('cute')}
+              variant={currentMode === 'cute' ? 'default' : 'outline'}
+              className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 border-pink-500"
+            >
+              <Icon name="Heart" size={18} />
+              Child
             </Button>
             <Button
               onClick={() => setCurrentMode('horror')}
               variant={currentMode === 'horror' ? 'destructive' : 'outline'}
               className="flex items-center gap-2"
             >
-              <Icon name="Skull" size={20} />
-              Хоррор
+              <Icon name="Skull" size={18} />
+              Horror
             </Button>
           </div>
 
