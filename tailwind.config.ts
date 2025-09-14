@@ -61,6 +61,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				sprunki: {
+					orange: '#FF6B35',
+					cyan: '#44ECDC',
+					yellow: '#FFE66D',
+					purple: '#8338EC',
+					pink: '#E91E63',
+					dark: '#11A1A2E'
 				}
 			},
 			borderRadius: {
