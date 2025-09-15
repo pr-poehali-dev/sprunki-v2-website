@@ -39,7 +39,7 @@ const characters: Character[] = [
   { id: '5', name: 'Sky', color: 'bg-green-400', soundType: 'harmony', type: 'normal', animation: 'float' },
   { id: '6', name: 'KidzXD', color: 'bg-gray-700', soundType: 'tech', type: 'normal', animation: 'pulse' },
   { id: '7', name: 'Durple', color: 'bg-purple-600', soundType: 'effect', type: 'normal', animation: 'wobble' },
-  { id: '8', name: 'Mr. Fun Computer', color: 'bg-blue-600', soundType: 'electronic', type: 'normal', animation: 'pulse' },
+  { id: '8', name: 'Mr. Fun Computer', color: 'bg-blue-600', soundType: 'vocals', type: 'normal', animation: 'pulse' },
   { id: '9', name: 'Simon', color: 'bg-yellow-300', soundType: 'vocal', type: 'normal', animation: 'breathe' },
   { id: '10', name: 'Tunner', color: 'bg-gray-600', soundType: 'percussion', type: 'normal', animation: 'tap' },
   { id: '11', name: 'Mr. Sun', color: 'bg-yellow-500', soundType: 'synth', type: 'normal', animation: 'glow' },
@@ -71,6 +71,13 @@ const songs: Song[] = [
   { id: 5, name: 'Epic Journey', bpm: 110, key: 'F', mood: 'epic' },
 ];
 
+const mrFunComputerLyrics = [
+  "Привет! Хочешь повеселиться с нами прямо сейчас?",
+  "Давай! Подпевайте нам в это весёлое время!",
+  "Мы танцуем и поём, это так классно!",
+  "Спрунки музыка играет, все счастливы!"
+];
+
 export default function Index() {
   const [activeSlots, setActiveSlots] = useState<ActiveSlot[]>(() => 
     Array(7).fill(null).map((_, index) => ({
@@ -86,9 +93,12 @@ export default function Index() {
   const [currentSong, setCurrentSong] = useState<Song>(songs[0]);
   const [globalVolume, setGlobalVolume] = useState(75);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const [currentLyricIndex, setCurrentLyricIndex] = useState(0);
+  const [showLyrics, setShowLyrics] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<Map<string, OscillatorNode>>(new Map());
   const songIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lyricsIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize Audio Context
   useEffect(() => {
@@ -198,7 +208,8 @@ export default function Index() {
       'breathe': 350,
       'sway': 200,
       'flicker': 1000,
-      'distort': 600
+      'distort': 600,
+      'vocals': 330 // Mr Fun Computer vocals
     };
 
     // Apply song key modulation
@@ -225,6 +236,17 @@ export default function Index() {
     // Start and schedule stop
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.8);
+    
+    // Handle Mr Fun Computer lyrics
+    if (character.name === 'Mr. Fun Computer' && character.soundType === 'vocals') {
+      setShowLyrics(true);
+      // Start lyrics cycling if not already started
+      if (!lyricsIntervalRef.current) {
+        lyricsIntervalRef.current = setInterval(() => {
+          setCurrentLyricIndex(prev => (prev + 1) % mrFunComputerLyrics.length);
+        }, 3000); // Change lyrics every 3 seconds
+      }
+    }
     
     // Store reference
     oscillatorsRef.current.set(slotId, oscillator);
@@ -264,6 +286,17 @@ export default function Index() {
   };
 
   const removeFromSlot = (slotId: string) => {
+    // Check if removing Mr Fun Computer
+    const slot = activeSlots.find(s => s.id === slotId);
+    if (slot?.character?.name === 'Mr. Fun Computer') {
+      setShowLyrics(false);
+      if (lyricsIntervalRef.current) {
+        clearInterval(lyricsIntervalRef.current);
+        lyricsIntervalRef.current = null;
+      }
+      setCurrentLyricIndex(0);
+    }
+    
     setActiveSlots(prev =>
       prev.map(slot =>
         slot.id === slotId
@@ -302,6 +335,14 @@ export default function Index() {
     setActiveSlots(prev =>
       prev.map(slot => ({ ...slot, character: null, isPlaying: false }))
     );
+    
+    // Stop lyrics display
+    setShowLyrics(false);
+    if (lyricsIntervalRef.current) {
+      clearInterval(lyricsIntervalRef.current);
+      lyricsIntervalRef.current = null;
+    }
+    setCurrentLyricIndex(0);
   };
 
   const getAnimationClass = (animation: string, isPlaying: boolean) => {
@@ -515,6 +556,33 @@ export default function Index() {
                 </div>
               ))}
             </div>
+
+            {/* Lyrics Display */}
+            {showLyrics && (
+              <Card className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-400/30">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Icon name="Music" size={20} className="text-blue-400" />
+                      <h3 className="text-lg font-bold text-blue-400">Mr. Fun Computer</h3>
+                    </div>
+                    <p className="text-xl font-semibold text-white leading-relaxed animate-pulse">
+                      {mrFunComputerLyrics[currentLyricIndex]}
+                    </p>
+                    <div className="flex justify-center gap-1 mt-4">
+                      {mrFunComputerLyrics.map((_, i) => (
+                        <div
+                          key={i}
+                          className={`w-2 h-2 rounded-full ${
+                            i === currentLyricIndex ? 'bg-blue-400' : 'bg-gray-600'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Visualizer */}
             <Card className="bg-black/20 border-none">
