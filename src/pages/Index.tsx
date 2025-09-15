@@ -13,6 +13,15 @@ interface Character {
   animation: string;
   image?: string;
   audioUrl?: string;
+  songIndex?: number;
+}
+
+interface Song {
+  id: number;
+  name: string;
+  bpm: number;
+  key: string;
+  mood: 'happy' | 'mysterious' | 'energetic' | 'chill' | 'epic';
 }
 
 interface ActiveSlot {
@@ -54,6 +63,14 @@ const characters: Character[] = [
   { id: '25', name: 'Black', color: 'bg-black', soundType: 'dark-beat', type: 'horror', animation: 'flicker' },
 ];
 
+const songs: Song[] = [
+  { id: 1, name: 'Original Beat', bpm: 120, key: 'C', mood: 'happy' },
+  { id: 2, name: 'Mysterious Vibes', bpm: 90, key: 'Am', mood: 'mysterious' },
+  { id: 3, name: 'Energy Rush', bpm: 140, key: 'G', mood: 'energetic' },
+  { id: 4, name: 'Chill Beats', bpm: 80, key: 'Dm', mood: 'chill' },
+  { id: 5, name: 'Epic Journey', bpm: 110, key: 'F', mood: 'epic' },
+];
+
 export default function Index() {
   const [activeSlots, setActiveSlots] = useState<ActiveSlot[]>(() => 
     Array(7).fill(null).map((_, index) => ({
@@ -66,9 +83,12 @@ export default function Index() {
   const [draggedCharacter, setDraggedCharacter] = useState<Character | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [currentMode, setCurrentMode] = useState<'normal' | 'cute' | 'horror'>('normal');
+  const [currentSong, setCurrentSong] = useState<Song>(songs[0]);
   const [globalVolume, setGlobalVolume] = useState(75);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorsRef = useRef<Map<string, OscillatorNode>>(new Map());
+  const songIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize Audio Context
   useEffect(() => {
@@ -87,6 +107,43 @@ export default function Index() {
       }
     };
   }, []);
+
+  // Get key modulation for different songs
+  const getKeyModulation = (key: string): number => {
+    const keyModulations: { [key: string]: number } = {
+      'C': 1.0,
+      'Am': 0.9,
+      'G': 1.1,
+      'Dm': 0.85,
+      'F': 1.05,
+      'Em': 0.95,
+      'Bb': 1.15,
+      'D': 1.2
+    };
+    return keyModulations[key] || 1.0;
+  };
+
+  // Auto-play background music
+  useEffect(() => {
+    if (isAutoPlay && activeSlots.some(slot => slot.character)) {
+      const interval = setInterval(() => {
+        activeSlots.forEach(slot => {
+          if (slot.character) {
+            playCharacterSound(slot.character, slot.id);
+          }
+        });
+      }, 60000 / currentSong.bpm * 4); // Play every 4 beats
+      
+      songIntervalRef.current = interval;
+      return () => clearInterval(interval);
+    }
+    
+    return () => {
+      if (songIntervalRef.current) {
+        clearInterval(songIntervalRef.current);
+      }
+    };
+  }, [isAutoPlay, activeSlots, currentSong]);
 
   // Play sound for character
   const playCharacterSound = (character: Character, slotId: string) => {
@@ -125,10 +182,29 @@ export default function Index() {
       'dark-beat': 46, // Very dark
       'horror-voice': 98, // Horror frequency
       'screech': 2000, // High screech
-      'static': 1000 // Static noise
+      'static': 1000, // Static noise
+      'happy-beat': 100,
+      'kid-voice': 450,
+      'sweet-voice': 400,
+      'soft-beat': 90,
+      'scream': 1500,
+      'evil-laugh': 150,
+      'glitch': 800,
+      'glow': 600,
+      'tech': 200,
+      'tap': 830,
+      'wobble': 415,
+      'float': 500,
+      'breathe': 350,
+      'sway': 200,
+      'flicker': 1000,
+      'distort': 600
     };
 
-    oscillator.frequency.setValueAtTime(frequencies[character.soundType] || 440, ctx.currentTime);
+    // Apply song key modulation
+    const baseFreq = frequencies[character.soundType] || 440;
+    const keyModulation = getKeyModulation(currentSong.key);
+    oscillator.frequency.setValueAtTime(baseFreq * keyModulation, ctx.currentTime);
     
     // Set wave type based on character type
     if (character.type === 'horror') {
@@ -299,6 +375,28 @@ export default function Index() {
             </Button>
           </div>
 
+          {/* Song Selection */}
+          <div className="flex justify-center gap-2 mb-4 flex-wrap">
+            {songs.map((song) => (
+              <Button
+                key={song.id}
+                onClick={() => setCurrentSong(song)}
+                variant={currentSong.id === song.id ? 'default' : 'outline'}
+                size="sm"
+                className="text-xs"
+              >
+                {song.name}
+              </Button>
+            ))}
+          </div>
+
+          {/* Song Info */}
+          <div className="text-center mb-4">
+            <Badge className="mx-1">{currentSong.bpm} BPM</Badge>
+            <Badge className="mx-1">{currentSong.key}</Badge>
+            <Badge className="mx-1 capitalize">{currentSong.mood}</Badge>
+          </div>
+
           {/* Controls */}
           <div className="flex justify-center gap-4 mb-6">
             <Button onClick={clearAll} variant="outline" className="flex items-center gap-2">
@@ -306,8 +404,16 @@ export default function Index() {
               Очистить
             </Button>
             <Button
+              onClick={() => setIsAutoPlay(!isAutoPlay)}
+              variant={isAutoPlay ? 'default' : 'outline'}
+              className="flex items-center gap-2"
+            >
+              <Icon name={isAutoPlay ? 'Pause' : 'Play'} size={16} />
+              {isAutoPlay ? 'Пауза' : 'Играть'}
+            </Button>
+            <Button
               onClick={() => setIsRecording(!isRecording)}
-              variant={isRecording ? 'destructive' : 'default'}
+              variant={isRecording ? 'destructive' : 'outline'}
               className="flex items-center gap-2"
             >
               <Icon name={isRecording ? 'Square' : 'Circle'} size={16} />
